@@ -15,15 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Block definition class for the block_pluginname plugin.
+ * Block definition class for the block_useroverview plugin.
  *
  * @package   block_useroverview
- * @copyright PamalM
+ * @copyright Pamal Mangat
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 class block_useroverview extends block_base {
-
     /**
      * Initialises the block.
      *
@@ -40,7 +39,7 @@ class block_useroverview extends block_base {
      */
     public function get_content() {
 
-        global $OUTPUT, $USER;
+        global $OUTPUT, $USER, $PAGE, $DB, $CFG;
 
         if ($this->content !== null) {
             return $this->content;
@@ -51,30 +50,38 @@ class block_useroverview extends block_base {
         }
 
         $this->content = new stdClass();
-        $data = [];
-        $data['auth'] = $USER->auth;
-        $data['username'] = $USER->username;
-        $data['firstname'] = $USER->firstname;
-        $data['lastname'] = $USER->lastname;
-        $data['email'] = $USER->email;
-        $data['city'] = $USER->city;
-        $data['lastlogin'] = $USER->lastlogin; //to-do conver to user timezone. 
-        $data['firstaccess'] = $USER->firstaccess; //to-do convert to user timezone. 
 
-        $contextblock = enrol_get_all_users_courses(2); // testing
-        echo userdate(var_dump($contextblock));
+        // Extract # of courses that the user is enrolled in (only visible courses with an active enrolment status). 
+        if (count(enrol_get_users_courses($USER->id, true)) == 0) {
+            $usercoursecount = get_string('viewcoursesempty', 'block_useroverview');
+            $usercourselink = false;
+        } else {
+            // If no enrolled courses. 
+            $usercoursecount = get_string('viewcourses', 'block_useroverview', count(enrol_get_users_courses($USER->id, true)));
+            $usercourselink = true;
+        }
 
-        $this->content->text = $OUTPUT->render_from_template('block_useroverview/default', $data);
-        $this->content->footer = '';
+        // Get user's profile picture. 
+        $userpicture = new user_picture($DB->get_record('user', array('id' => $USER->id)));
+        $pictureurl = $userpicture->get_url($PAGE, $OUTPUT);
+
+        // User data to display & pass to Mustache Renderer template.
+        $userdata = [];
+        $userdata['fullname'] = $USER->firstname . " " . $USER->lastname;
+        $userdata['email'] = $USER->email;
+        $userdata['coursecount'] = $usercoursecount;
+        $userdata['mycoursesurl'] = $CFG->wwwroot . '/my/courses.php';
+        $userdata['validcourseslink'] = $usercourselink; 
+        $userdata['profilepictureurl'] = $userpicture->get_url($PAGE, $OUTPUT);
+        $userdata['profileurl'] = new moodle_url('http://localhost/moodle41/user/edit.php?id=' . $USER->id . '&returnto=profile'); 
+
+        // TO-DO: Add user data for: Account creation date, first login, last login displayed in user's timezone. 
+        // TO-DO: Add btn to link to local plugin page with dependencies. 
+
+        // Send user data to Moustache Render Template. 
+        $this->content->text = $OUTPUT->render_from_template('block_useroverview/default', $userdata);
 
         return $this->content;
-    }
-
-    /**
-     * Prevent multiple instances of block being added to context(s).
-     */
-    public function instance_allow_multiple() {
-        return false;
     }
 
     /**
@@ -86,7 +93,7 @@ class block_useroverview extends block_base {
         return [
             'admin' => false,
             'site-index' => true,
-            'course-view' => true,
+            'course-view' => false,
             'mod' => false,
             'my' => true,
         ];

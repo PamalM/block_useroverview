@@ -24,6 +24,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2024111204;
+$plugin->version = 2024111220;
 $plugin->requires = 2023100908;
 $plugin->component = 'block_useroverview';

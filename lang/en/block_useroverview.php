@@ -23,5 +23,9 @@
  */
 
 $string['pluginname'] = 'User Overview';
-$string['pluginname:addinstance'] = 'Add a new User Overview Block';
-$string['pluginname:myaddinstance'] = 'Add a new User Overview block to the My Moodle page';
+$string['useroverview:addinstance'] = 'Add a new User Overview Block';
+$string['useroverview:myaddinstance'] = 'Add a new User Overview block to the Dashboard page';
+$string['useroverview:manageuseroverview'] = 'Manage User Overview block plugin settings';
+$string['editprofile'] = 'Edit Profile';
+$string['viewcourses'] = 'View ({$a}) enrolled course(s)';
+$string['viewcoursesempty'] = 'No enrolled courses';
